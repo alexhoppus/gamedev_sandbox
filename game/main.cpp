@@ -53,8 +53,9 @@ int main()
         gTm->GenerateTileArea(block, 10, 23, 2, 13, true);
         gTm->GenerateTileArea(block, 10, 3, 3, 23, true);
     }
-    Animator *a = new Animator(&ar["soldier1"]);
-    TransformableObject obj1(a, TileCoord(4, 1), sf::Vector2f(1.0, 1.0), gPf,
+    TransformableObject obj1(&ar["soldier1"], TileCoord(4, 1), sf::Vector2f(1.0, 1.0), gPf,
+            2.0);
+    TransformableObject obj2(&ar["soldier1"], TileCoord(5, 7), sf::Vector2f(1.0, 1.0), gPf,
             2.0);
 
     while (window.isOpen())
@@ -79,6 +80,7 @@ int main()
                 printf("tile (%f %f)\n", t->GetScreenCoord().x,
                         t->GetScreenCoord().y);
                 obj1.MoveTo(t->GetTileCoord());
+                obj2.MoveTo(t->GetTileCoord());
             }
             if (event.type == sf::Event::KeyPressed)
             {
