@@ -3,6 +3,7 @@
 #define MATH_DEFS
 
 #include <SFML/Graphics.hpp>
+#include <math.h>
 
 using namespace sf;
 

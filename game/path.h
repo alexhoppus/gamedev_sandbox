@@ -8,6 +8,7 @@
 #include "animator.h"
 #include "object.h"
 #include "tilemap.h"
+#include "mutex"
 
 using namespace std;
 using namespace sf;
@@ -19,6 +20,7 @@ private:
     uint8_t *visited;
     int     *distMap;
     Tile   **parent;
+    std::mutex finderLock;
 
     void SetVisited(int x, int y)
     {

@@ -23,17 +23,20 @@ MovementQuant mq[8] = {
     {-1, 1,  20, DIR_180},
     {-1, 0,  10, DIR_225}
 };
-
+#define DEBUG 0
 int PathFinder::PathFind(int sx, int sy, int dstx, int dsty, list<Tile *> &lpath)
 {
+    finderLock.lock();
     memset(visited, 0x0, tm->bounds.height * tm->bounds.width);
     for (int i = 0; i < tm->bounds.height * tm->bounds.width; i++)
         distMap[i] = INT_MAX;
 
     Tile *sTile = tm->GetTile(TileCoord(sx, sy));
     Tile *dTile = tm->GetTile(TileCoord(dstx, dsty));
-    if (sTile->occupied || dTile->occupied)
+    if (dTile->occupied) {
+        finderLock.unlock();
         return -1;
+    }
 
     SetDistance(sx, sy, 0);
 
@@ -54,6 +57,7 @@ int PathFinder::PathFind(int sx, int sy, int dstx, int dsty, list<Tile *> &lpath
                 nextTile = GetParent(nextTile->GetTileCoord().x,
                                      nextTile->GetTileCoord().y);
             }
+            finderLock.unlock();
             return 0;
         }
         l.erase(res);
@@ -90,6 +94,7 @@ int PathFinder::PathFind(int sx, int sy, int dstx, int dsty, list<Tile *> &lpath
             }
         }
     }
+    finderLock.unlock();
     return -1;
 }
 

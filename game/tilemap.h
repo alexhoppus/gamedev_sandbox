@@ -5,10 +5,12 @@
 #include <map>
 #include <string>
 #include <stdio.h>
+#include <mutex>
 
 #include "object.h"
 
 using namespace sf;
+using namespace std;
 
 #define MAP_X 64
 #define MAP_Y 64
@@ -17,10 +19,33 @@ typedef Vector2i TileCoord;
 
 class DrawableObject;
 
+
+#ifdef DEBUG
+extern Animator *gNoBlockAnim;
+extern Animator *gBlockAnim;
+#endif
+
 struct Tile : public DrawableObject {
     bool  occupied;
     float w, h;
     TileCoord tc;
+
+    void SetOccupied(bool state)
+    {
+        occupied = state;
+#ifdef DEBUG
+        if (occupied)
+            an = gBlockAnim;
+        else
+            an = gNoBlockAnim;
+#endif
+    }
+
+    bool GetOccupied(void)
+    {
+        return occupied;
+    }
+
 
     TileCoord GetTileCoord(void)
     {
@@ -75,8 +100,8 @@ public:
 
     Tile *GetTile(ScreenCoord sc)
     {
-        TileCoord tc = TileCoord((sc.x / (tW / 2) + sc.y / (tH / 2)) / 2,
-                                 (sc.y / (tH / 2) - (sc.x / (tW / 2))) / 2 );
+        TileCoord tc = TileCoord((sc.x / (tW / 2) + (sc.y + tH / 2) / (tH / 2)) / 2,
+                                 (((sc.y + tH / 2) + 0) / (tH / 2) - sc.x / (tW / 2)) / 2);
         return map[tc.x][tc.y];
     }
 

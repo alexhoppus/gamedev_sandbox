@@ -53,6 +53,7 @@ int DrawableObject::ScheduleDraw(sf::RenderWindow *window)
     sf::CircleShape centerMarker(2);
     centerMarker.setFillColor(sf::Color(255, 0, 0));
 #endif
+    sprite.setTexture(*(an->GetTexSheet()));
     IntRect r = *(an->GetCurAnim());
     Vector2f center = Vector2f((r.width / 2) * scale.x,
             (r.height / 2) * scale.y);
@@ -129,56 +130,120 @@ extern TileMap *gTm;
 bool TransformableObject::ScheduleTranslate(void)
 {
     if (!path.empty()) {
+        ScreenCoord dst;
         Tile *dstTile = path.front();
-        Tile *curTile = gTm->GetTile(this->pos);
 
         an->SetAnim(ANIM_WALK);
 
-        ScreenCoord dst = dstTile->GetScreenCoord();
+        dst = dstTile->GetScreenCoord();
+
         if (!isInsideArea(dst, this->GetScreenCoord(), velocity * 1)) {
             Vector2f vector = (dst - this->GetScreenCoord()) /
                 Norm(dst - this->GetScreenCoord());
+            Vector2f nextPos;
             DirId dId = ComputeDirection(vector);
+
             an->SetDir(dId);
 
-            pos.x += vector.x * velocity;
-            pos.y += vector.y * velocity;
+            nextPos.x = pos.x + vector.x * velocity;
+            nextPos.y = pos.y + vector.y * velocity;
+
+            Tile *t = gTm->GetTile(nextPos);
+            if ((t == dstTile) && (dstTile != curTile)) {
+                assert(curTile);
+                /* TODO: atomic */
+                if (!t->GetOccupied()) {
+                    curTile->SetOccupied(false);
+                    curTile = t;
+                    curTile->SetOccupied(true);
+                } else {
+                    int  ret = 0;
+                    Tile *altDstTile = NULL;
+                    list<Tile *> altPath;
+                    std::list<Tile *>::iterator it;
+
+                    an->SetAnim(ANIM_IDLE);
+                    if (blockWaitCtr++ == blockWaitLimit) {
+                        printf("curTask %d -> IDLE\n", curTask);
+                        for (it = std::begin(path); it != std::end(path); ++it) {
+                            if (!(*it)->GetOccupied()) {
+                                assert(it != std::begin(path));
+                                altDstTile = *it;
+                                break;
+                            }
+                        }
+                        if (altDstTile) {
+                            ret = pf->PathFind(curTile->GetTileCoord().x,
+                                    curTile->GetTileCoord().y,
+                                    altDstTile->GetTileCoord().x,
+                                    altDstTile->GetTileCoord().y, altPath);
+                            if (ret)
+                                return true;
+                        } else {
+                            return true;
+                        }
+                        path.erase(std::begin(path), it);
+                        assert(altPath.size() > 0);
+                        if (altPath.size() > 1)
+                            path.insert(std::begin(path), altPath.begin(), prev(altPath.end()));
+                        blockWaitCtr = 0;
+                    }
+                    return false;
+                }
+            }
+
+            pos = nextPos;
         } else {
             path.pop_front();
         }
         return false;
     }
+exit:
     an->SetAnim(ANIM_IDLE);
+    printf("[%p] task %d finished\n", this, curTask);
     curTask = -1;
     return true;
 }
 
 TransformableObject::TransformableObject(AnimatorResource *ar, TileCoord p, Vector2f s,
-        PathFinder *_pf, float v) :
-        DrawableObject(new Animator(ar), Vector2f(_pf->GetBaseTileMap()->GetTile(p)->pos), s),
-        velocity(v), pf(_pf)
+        float v) :
+        DrawableObject(new Animator(ar), Vector2f(gTm->GetTile(p)->pos), s),
+        velocity(v)
 {
     gTobjs.push_back(this);
     curTask = -1;
+    pf = new PathFinder(gTm);
+    curTile = gTm->GetTile(pos);
+    curTile->SetOccupied(true);
+    blockWaitCtr = 0;
+    blockWaitLimit = 60;
 };
 
-void TransformableObject::MoveTo(TileCoord dst)
+void TransformableObject::MoveTo(ScreenCoord dst)
 {
     int ret;
+    printf("[%p] begin move, cur task %d\n", this, curTask);
     if (curTask != -1) {
+        printf("[%p] remove task %d\n", this, curTask);
         gEm->RemoveTask(curTask);
         path.resize(0);
         an->SetAnim(ANIM_IDLE);
+        curTask = -1;
     }
     Tile *t = gTm->GetTile(this->pos);
     int sx = t->GetTileCoord().x;
     int sy = t->GetTileCoord().y;
-    ret = pf->PathFind(sx, sy, dst.x, dst.y, path);
+    Tile *dstt = gTm->GetTile(dst);
+    int dx = dstt->GetTileCoord().x;
+    int dy = dstt->GetTileCoord().y;
+    dstPt = dst;
+    ret = pf->PathFind(sx, sy, dx, dy, path);
 
     if (!ret && path.size() > 0) {
         curTask = gEm->AddTask((new TaskPeriodic(
                         (TaskPeriodicCb)&TransformableObject::ScheduleTranslate,
                         (void *)this, 50 /* 50 miliseconds */)));
+        printf("[%p] add task %d\n", this, curTask);
     }
 };
 

@@ -5,7 +5,7 @@
 #include <mutex>
 #include <list>
 #include "animator.h"
-#include "math.h"
+#include "vec.h"
 
 using namespace sf;
 using namespace std;
@@ -34,6 +34,7 @@ protected:
 public:
     Animator     *an;
     ScreenCoord  pos;
+    Tile        *curTile;
     ScreenCoord GetScreenCoord(void) { return pos;};
 
     DrawableObject(Animator *a, ScreenCoord p, Vector2f s);
@@ -46,15 +47,19 @@ class TransformableObject : public DrawableObject {
 private:
     float         velocity;
     list<Tile *>  path;
+    ScreenCoord   dstPt;
     int           curTask;
+    Tile         *curTile;
     PathFinder   *pf;
+    int           blockWaitCtr;
+    int           blockWaitLimit;
 
     DirId ComputeDirection(Vector2f curDir);
     bool ScheduleTranslate(void);
 public:
-    TransformableObject(AnimatorResource *ar, TileCoord p, Vector2f s, PathFinder *pf,
+    TransformableObject(AnimatorResource *ar, TileCoord p, Vector2f s,
             float v);
-    void MoveTo(TileCoord dst);
+    void MoveTo(ScreenCoord dst);
 };
 
 void DrawAll(sf::RenderWindow *window);

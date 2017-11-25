@@ -6,6 +6,7 @@
 #include <set>
 
 #include <time.h>
+#include <stdlib.h>
 
 #include "animator.h"
 #include "object.h"
@@ -19,16 +20,22 @@ using namespace std;
 
 EventManager                     *gEm;
 TileMap                          *gTm;
-PathFinder                       *gPf;
 
 sf::Clock gClock;
+
+#define DEBUG 1
+
+#ifdef DEBUG
+    Animator *gNoBlockAnim;
+    Animator *gBlockAnim;
+#endif
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
     gEm = EventManager::getInstance();
-    gTm = new TileMap(50, 25);
-    gPf = new PathFinder(gTm);
+    gTm = new TileMap(48, 24);
+    srand(time(NULL));
     gClock.restart();
 
     sf::View view = window.getView();
@@ -39,6 +46,11 @@ int main()
     {
         Animator *nonblock = new Animator(&ar["grass-terrain-debug"]);
         Animator *block = new Animator(&ar["forbid"]);
+#ifdef DEBUG
+        gBlockAnim = block;
+        gNoBlockAnim = nonblock;
+#endif
+
         gTm->GenerateTileArea(nonblock, 0, 0, 64, 64, false);
         gTm->GenerateTileArea(block, 5, 5, 1, 2, true);
         gTm->GenerateTileArea(block, 10, 7, 3, 1, true);
@@ -48,9 +60,19 @@ int main()
         gTm->GenerateTileArea(block, 10, 23, 2, 13, true);
         gTm->GenerateTileArea(block, 10, 3, 3, 23, true);
     }
-    TransformableObject obj1(&ar["soldier1"], TileCoord(4, 1), sf::Vector2f(1.0, 1.0), gPf,
+    TransformableObject obj1(&ar["soldier1"], TileCoord(4, 1), sf::Vector2f(1.0, 1.0),
             2.0);
-    TransformableObject obj2(&ar["soldier1"], TileCoord(5, 7), sf::Vector2f(1.0, 1.0), gPf,
+    TransformableObject obj2(&ar["soldier1"], TileCoord(5, 7), sf::Vector2f(1.0, 1.0),
+            2.0);
+    TransformableObject obj3(&ar["soldier1"], TileCoord(1, 7), sf::Vector2f(1.0, 1.0),
+            2.0);
+    TransformableObject obj4(&ar["soldier1"], TileCoord(2, 3), sf::Vector2f(1.0, 1.0),
+            2.0);
+    TransformableObject obj5(&ar["soldier1"], TileCoord(4, 2), sf::Vector2f(1.0, 1.0),
+            2.0);
+    TransformableObject obj6(&ar["soldier1"], TileCoord(5, 8), sf::Vector2f(1.0, 1.0),
+            2.0);
+    TransformableObject obj7(&ar["soldier1"], TileCoord(2, 7), sf::Vector2f(1.0, 1.0),
             2.0);
 
     while (window.isOpen())
@@ -67,11 +89,14 @@ int main()
                 // convert it to world coordinates
                 sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
 
-                Tile *t = gTm->GetTile(ScreenCoord(worldPos.x, worldPos.y));
-                printf("tile (%f %f)\n", t->GetScreenCoord().x,
-                        t->GetScreenCoord().y);
-                obj1.MoveTo(t->GetTileCoord());
-                obj2.MoveTo(t->GetTileCoord());
+                obj1.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj2.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj3.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj4.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj5.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj6.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+                obj7.MoveTo(ScreenCoord(worldPos.x, worldPos.y));
+
             }
             if (event.type == sf::Event::KeyPressed)
             {

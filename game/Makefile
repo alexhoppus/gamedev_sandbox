@@ -9,7 +9,7 @@ EXECUTABLE = main
 all: $(EXECUTABLE)
 
 main: $(OBJ_FILES)
-	$(CC) $(LD_FLAGS) -o $@ $^ -lsfml-graphics -lsfml-window -lsfml-system -lpthread -lasan
+	$(CC) $(LD_FLAGS) -o $@ $^ -lasan -lsfml-graphics -lsfml-window -lsfml-system -lpthread -lm
 
 build/%.o: %.cpp
 	$(CC) $(CC_FLAGS) -c -o $@ $<
