@@ -48,6 +48,8 @@ private:
     std::map<int, Task *>  tasks;
     std::thread         *t;
 
+    static EventManager *em;
+
     EventManager()
     {
         int ret;
@@ -124,7 +126,9 @@ public:
     }
     static EventManager* getInstance()
     {
-        return new EventManager();
+        if (!em)
+            em = new EventManager();
+        return em;
     }
 };
 #endif

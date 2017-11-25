@@ -4,6 +4,8 @@
 
 using namespace sf;
 
+EventManager* EventManager::em = NULL;
+
 void EventManager::EventLoop(void)
 {
     int ret;
