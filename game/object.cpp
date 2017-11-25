@@ -124,12 +124,13 @@ DirId TransformableObject::ComputeDirection(Vector2f curDir)
     return (DirId) maxId;
 }
 
+extern TileMap *gTm;
+
 bool TransformableObject::ScheduleTranslate(void)
 {
     if (!path.empty()) {
-        TileMap *tm = pf->GetBaseTileMap();
         Tile *dstTile = path.front();
-        Tile *curTile = tm->GetTile(this->GetScreenCoord());
+        Tile *curTile = gTm->GetTile(this->pos);
 
         an->SetAnim(ANIM_WALK);
 
@@ -152,9 +153,9 @@ bool TransformableObject::ScheduleTranslate(void)
     return true;
 }
 
-TransformableObject::TransformableObject(Animator *a, TileCoord p, Vector2f s,
+TransformableObject::TransformableObject(AnimatorResource *ar, TileCoord p, Vector2f s,
         PathFinder *_pf, float v) :
-        DrawableObject(a, Vector2f(_pf->GetBaseTileMap()->GetTile(p)->pos), s),
+        DrawableObject(new Animator(ar), Vector2f(_pf->GetBaseTileMap()->GetTile(p)->pos), s),
         velocity(v), pf(_pf)
 {
     gTobjs.push_back(this);
@@ -169,8 +170,7 @@ void TransformableObject::MoveTo(TileCoord dst)
         path.resize(0);
         an->SetAnim(ANIM_IDLE);
     }
-    TileMap *tm = pf->GetBaseTileMap();
-    Tile *t = tm->GetTile(this->GetScreenCoord());
+    Tile *t = gTm->GetTile(this->pos);
     int sx = t->GetTileCoord().x;
     int sy = t->GetTileCoord().y;
     ret = pf->PathFind(sx, sy, dst.x, dst.y, path);

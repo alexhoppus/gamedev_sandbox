@@ -31,13 +31,8 @@ int main()
     gPf = new PathFinder(gTm);
     gClock.restart();
 
-//    sf::View view(sf::FloatRect(0, 0, 1500, 1500));
-    // activate it
-//    window.setView(view);
-
     sf::View view = window.getView();
     window.setView(view);
-
 
     std::map<string, AnimatorResource> ar;
     LoadAnimLoop("./resources/base.anim", ar);
@@ -68,10 +63,6 @@ int main()
         {
             if (event.mouseButton.button == sf::Mouse::Left)
             {
-                //float Mx = (float) event.mouseButton.x;
-                //float My = (float) event.mouseButton.y;
-                //printf("%d %d\n", event.mouseButton.x, event.mouseButton.y);
-
                 sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
                 // convert it to world coordinates
                 sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);

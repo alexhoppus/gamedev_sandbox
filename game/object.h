@@ -52,7 +52,7 @@ private:
     DirId ComputeDirection(Vector2f curDir);
     bool ScheduleTranslate(void);
 public:
-    TransformableObject(Animator *a, TileCoord p, Vector2f s, PathFinder *pf,
+    TransformableObject(AnimatorResource *ar, TileCoord p, Vector2f s, PathFinder *pf,
             float v);
     void MoveTo(TileCoord dst);
 };
