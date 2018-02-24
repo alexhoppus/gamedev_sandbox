@@ -19,6 +19,7 @@ typedef Vector2i TileCoord;
 
 class DrawableObject;
 
+#define DEBUG 1
 
 #ifdef DEBUG
 extern Animator *gNoBlockAnim;
