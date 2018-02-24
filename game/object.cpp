@@ -163,8 +163,9 @@ bool TransformableObject::ScheduleTranslate(void)
                     std::list<Tile *>::iterator it;
 
                     an->SetAnim(ANIM_IDLE);
+                    printf("curTask %d -> IDLE %d %d\n", curTask, blockWaitCtr, blockWaitLimit);
                     if (blockWaitCtr++ == blockWaitLimit) {
-                        printf("curTask %d -> IDLE\n", curTask);
+                        blockWaitCtr = 0;
                         for (it = std::begin(path); it != std::end(path); ++it) {
                             if (!(*it)->GetOccupied()) {
                                 assert(it != std::begin(path));
@@ -186,7 +187,6 @@ bool TransformableObject::ScheduleTranslate(void)
                         assert(altPath.size() > 0);
                         if (altPath.size() > 1)
                             path.insert(std::begin(path), altPath.begin(), prev(altPath.end()));
-                        blockWaitCtr = 0;
                     }
                     return false;
                 }
